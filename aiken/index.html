@@ -1,0 +1,697 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Aiken 轉換器</title></head><body>
+<style>.toolbox-back{display:block;padding:10px 16px;font:500 14px/1.4 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:#ffffffcc;border-bottom:1px solid #d7dce3}.toolbox-back a{color:#2b4c7e;text-decoration:none}.toolbox-back a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.toolbox-back{background:#1b1e26cc;border-bottom-color:#333846}.toolbox-back a{color:#7fa3d6}}</style>
+<nav class="toolbox-back"><a href="../">← 回教學工具箱</a></nav>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<style>
+  :root{
+    --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF1F5; --border:#D7DCE3;
+    --ink:#1F2430; --ink-muted:#5B6270;
+    --accent:#2B4C7E; --accent-ink:#FFFFFF; --accent-soft:#E7EEF7;
+    --good:#1F7A54; --good-soft:#E4F3EC;
+    --bad:#B23A3A; --bad-soft:#FBEAEA;
+    --mono-bg:#14161B; --mono-ink:#E7EAEF; --mono-border:#2A2E38; --mono-muted:#8B93A3;
+    --shadow:0 1px 2px rgba(31,36,48,.06), 0 8px 24px -12px rgba(31,36,48,.22);
+    --radius:12px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12141A; --surface:#1B1E26; --surface-2:#232733; --border:#333846;
+      --ink:#E7EAEF; --ink-muted:#9AA2B2;
+      --accent:#7FA3D6; --accent-ink:#0E1420; --accent-soft:#223148;
+      --good:#4CAF7D; --good-soft:#16301F;
+      --bad:#E27272; --bad-soft:#3A1E1E;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12141A; --surface:#1B1E26; --surface-2:#232733; --border:#333846;
+    --ink:#E7EAEF; --ink-muted:#9AA2B2;
+    --accent:#7FA3D6; --accent-ink:#0E1420; --accent-soft:#223148;
+    --good:#4CAF7D; --good-soft:#16301F;
+    --bad:#E27272; --bad-soft:#3A1E1E;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, -apple-system, "Noto Sans TC", sans-serif;
+    padding-inline:20px; padding-block:40px;
+  }
+  .wrap{max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:22px;}
+
+  header{display:flex; flex-direction:column; gap:8px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--accent); font-weight:500;
+  }
+  h1{
+    font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:clamp(28px,5vw,38px);
+    margin:0; text-wrap:balance; line-height:1.1;
+  }
+  header p{margin:0; color:var(--ink-muted); font-size:15px; max-width:56ch; line-height:1.6;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:22px;
+  }
+  .card h2{
+    font-size:13px; text-transform:uppercase; letter-spacing:.08em; font-weight:600;
+    color:var(--ink-muted); margin:0 0 14px;
+  }
+
+  /* upload */
+  .dropzone{
+    border:1.5px dashed var(--border); border-radius:var(--radius);
+    padding:28px 20px; text-align:center; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:border-color .15s, background .15s;
+  }
+  .dropzone:hover, .dropzone.drag{border-color:var(--accent); background:var(--accent-soft);}
+  .dropzone .filename{font-family:"IBM Plex Mono", monospace; font-size:13px; color:var(--ink);}
+  .dropzone .hint{font-size:13px; color:var(--ink-muted);}
+  .dropzone svg{width:30px; height:30px; stroke:var(--ink-muted);}
+  input[type=file]{display:none;}
+  .tabs{display:flex; gap:4px; background:var(--surface-2); border-radius:9px; padding:4px; margin-bottom:14px; width:max-content; max-width:100%;}
+  .tab{
+    font-family:inherit; font-size:13.5px; font-weight:600; border:0; border-radius:7px;
+    padding:7px 14px; cursor:pointer; background:transparent; color:var(--ink-muted);
+  }
+  .tab.active{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(31,36,48,.12);}
+  textarea#pasteInput{
+    width:100%; min-height:200px; resize:vertical;
+    background:var(--surface); color:var(--ink); border:1px solid var(--border);
+    border-radius:9px; padding:12px 14px; font-family:inherit; font-size:13.5px; line-height:1.6;
+  }
+  textarea#pasteInput:focus{outline:2px solid var(--accent); outline-offset:-1px;}
+
+  .btn{
+    font-family:inherit; font-size:14px; font-weight:600; border-radius:9px; border:1px solid transparent;
+    padding:10px 16px; cursor:pointer; display:inline-flex; align-items:center; gap:8px;
+    transition:opacity .15s, transform .05s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--accent); color:var(--accent-ink);}
+  .btn-primary:disabled{opacity:.45; cursor:not-allowed;}
+  .btn-ghost{background:var(--surface-2); color:var(--ink); border-color:var(--border);}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+
+  /* summary */
+  .summary-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .stat{
+    flex:1 1 120px; background:var(--surface-2); border-radius:9px; padding:12px 14px;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .stat .n{font-family:"IBM Plex Mono", monospace; font-size:22px; font-weight:500; font-variant-numeric:tabular-nums;}
+  .stat .label{font-size:12px; color:var(--ink-muted);}
+  .stat.good .n{color:var(--good);}
+  .stat.bad .n{color:var(--bad);}
+  .sample-note{
+    font-size:12.5px; color:var(--ink-muted); background:var(--surface-2);
+    border-radius:8px; padding:8px 12px; margin-top:12px;
+  }
+
+  .warnings{margin-top:14px; display:flex; flex-direction:column; gap:8px;}
+  .warning{
+    background:var(--bad-soft); border:1px solid color-mix(in srgb, var(--bad) 35%, transparent);
+    border-radius:8px; padding:9px 12px; font-size:13px; color:var(--ink); line-height:1.5;
+  }
+  .warning b{color:var(--bad);}
+  .notice{
+    background:var(--accent-soft); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    border-radius:8px; padding:9px 12px; font-size:13px; color:var(--ink); line-height:1.5;
+  }
+  .notice b{color:var(--accent);}
+  .qcard .img-tag{
+    display:inline-block; font-size:11.5px; font-weight:600; color:var(--accent);
+    background:var(--accent-soft); border-radius:5px; padding:1px 7px; margin-bottom:6px;
+  }
+
+  /* question preview */
+  .qlist{display:flex; flex-direction:column; gap:14px;}
+  .qcard{border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
+  .qcard .stem{font-size:14px; line-height:1.55; margin-bottom:10px;}
+  .opts{display:flex; flex-direction:column; gap:6px;}
+  .opt{
+    display:flex; align-items:flex-start; gap:8px; font-size:13px; line-height:1.5;
+    padding:6px 10px; border-radius:7px; background:var(--surface-2);
+  }
+  .opt.correct{background:var(--good-soft); color:var(--ink);}
+  .opt .chip{
+    flex:none; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:600;
+    background:var(--surface); border:1px solid var(--border); color:var(--ink-muted);
+  }
+  .opt.correct .chip{background:var(--good); border-color:var(--good); color:#fff;}
+  .more-note{font-size:13px; color:var(--ink-muted); text-align:center; padding-top:2px;}
+
+  /* output */
+  textarea#output{
+    width:100%; min-height:220px; resize:vertical; margin-top:12px;
+    background:var(--mono-bg); color:var(--mono-ink); border:1px solid var(--mono-border);
+    border-radius:9px; padding:14px; font-family:"IBM Plex Mono", monospace; font-size:12.5px;
+    line-height:1.6; white-space:pre; overflow:auto;
+  }
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+    background:var(--ink); color:var(--bg); font-size:13px; padding:9px 16px; border-radius:20px;
+    box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:opacity .2s, bottom .2s;
+  }
+  .toast.show{opacity:1; bottom:32px;}
+
+  footer{font-size:12.5px; color:var(--ink-muted); line-height:1.7; padding-block:4px 20px;}
+  footer code{font-family:"IBM Plex Mono", monospace; background:var(--surface-2); padding:1px 5px; border-radius:4px;}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Word → Moodle 匯入格式</div>
+    <h1>Aiken 轉換器</h1>
+    <p>上傳含選擇題的 Word 檔或純文字檔，或直接貼上文字，自動整理成 Moodle 可直接匯入的 Aiken 格式：去掉題號、統一選項標號、拿掉 Explanation，只留下 Moodle 讀得懂的部分。</p>
+  </header>
+
+  <section class="card">
+    <h2>1. 輸入題目</h2>
+    <div class="tabs" role="tablist">
+      <button class="tab active" type="button" role="tab" data-tab="file">上傳檔案</button>
+      <button class="tab" type="button" role="tab" data-tab="paste">貼上文字</button>
+    </div>
+    <div id="panelFile">
+    <label class="dropzone" id="dropzone" for="fileInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <div class="filename" id="filenameLabel">尚未選擇檔案</div>
+      <div class="hint">點擊選擇 .docx 或 .txt，或直接把檔案拖進來</div>
+    </label>
+    <input type="file" id="fileInput" accept=".docx,.txt">
+    </div>
+    <div id="panelPaste" hidden>
+      <textarea id="pasteInput" spellcheck="false" placeholder="把題目文字直接貼在這裡，例如：&#10;題幹……&#10;A) …&#10;B) …&#10;ANSWER: B"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="convertBtn" disabled>開始轉換</button>
+    </div>
+  </section>
+
+  <section class="card" id="summaryCard">
+    <h2>2. 轉換結果</h2>
+    <div class="summary-row">
+      <div class="stat"><div class="n" id="statTotal">4</div><div class="label">偵測到的題目</div></div>
+      <div class="stat good"><div class="n" id="statOk">4</div><div class="label">成功轉換</div></div>
+      <div class="stat bad"><div class="n" id="statBad">0</div><div class="label">需要你檢查</div></div>
+    </div>
+    <div class="sample-note" id="sampleNote">目前顯示的是範例資料（你先前貼過的市場界定測驗題），上傳自己的 Word 檔後會自動換成你的內容。</div>
+    <div class="warnings" id="warnings" hidden></div>
+    <div class="warnings" id="notices" hidden></div>
+
+    <div class="qlist" id="qlist" style="margin-top:16px;"></div>
+    <div class="more-note" id="moreNote" hidden></div>
+  </section>
+
+  <section class="card">
+    <h2>3. Aiken 文字內容</h2>
+    <textarea id="output" readonly spellcheck="false"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="copyBtn">複製全部</button>
+      <button class="btn btn-ghost" id="downloadBtn">下載 .txt（UTF-8）</button>
+    </div>
+  </section>
+
+  <footer>
+    題幹前面的題號（<code>Q1.</code>、<code>1.</code>、<code>1、</code>、<code>(1)</code>、<code>第1題</code> 等）會自動刪除；ANSWER 之後到下一題之前的圖片、表格與文字說明也會一併刪除（題幹以「緊接在選項 A 前面的那一段」辨識）。每一題之間會自動空一行；純文字檔與貼上的文字以「一行」為一段，題幹即選項 A 的前一行。純文字檔可為 UTF-8 或 Big5 編碼。選項一律重新編成 <code>A. B. C. D.</code>、正確答案輸出成 <code>ANSWER: X</code>。原本的 Explanation／詳解內容不會出現在輸出裡。若某一題選項少於兩個、或找不到正確答案標記，會被列在「需要你檢查」，不會混進正式輸出中，請回 Word 檔手動確認後再匯入 Moodle。下載的 <code>.txt</code> 一律是不含 BOM 的 UTF-8，Moodle 匯入前不需要再另存編碼。
+  </footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var sampleQuestions = [
+    {
+      stem: "Which statement best explains the dual nature of market definition in marketing science? 下列何者最能說明行銷科學中市場界定的雙重屬性？",
+      options: [
+        "A market is defined only by government classifications and legally registered industry codes. 市場只能依政府分類與法定產業代碼加以界定。",
+        "A market combines producer-side product categories with consumer-side related activities. 市場界定結合生產者端的產品類別與消費者端的相關活動。",
+        "A market consists only of brands that sell products at identical price levels. 市場僅由價格水準完全相同的品牌所構成。",
+        "A market should include every product that can be purchased by the same household. 市場應納入同一家庭有可能購買的所有產品。"
+      ],
+      answerIndex: 1
+    },
+    {
+      stem: "What is the central focus of the consumer side of market definition? 市場界定中的消費者端，其核心關注為何？",
+      options: [
+        "The technical specifications used by manufacturers to create a product. 製造商用來生產產品的技術規格。",
+        "The retailer's inventory level and warehouse replenishment schedule. 零售商的庫存水位與倉儲補貨時程。",
+        "The related activities and problems that offerings help consumers address. 提供物協助消費者處理的相關活動與生活問題。",
+        "The accounting rules used to calculate the market share denominator. 用於計算市場占有率分母的會計規則。"
+      ],
+      answerIndex: 2
+    },
+    {
+      stem: "What does non-participation mean in the context of market definition? 在市場界定的脈絡下，非參與的意義為何？",
+      options: [
+        "Consumers have no relevant need and therefore never face the activity. 消費者完全沒有相關需求，因此從未面臨該活動。",
+        "Consumers may have a need but avoid current offerings because they are inadequate. 消費者可能有需求，但因現有提供物不足而不採用市場方案。",
+        "Consumers choose only the lowest-priced brand within the existing market. 消費者只會在既有市場中選擇價格最低的品牌。",
+        "Consumers answer every pick-any option by selecting all listed brands. 消費者在複選題中將所有列出的品牌全部勾選。"
+      ],
+      answerIndex: 1
+    },
+    {
+      stem: "What is the main purpose of a screening variable in the research process? 問卷使用篩選題的主要目的為何？",
+      options: [
+        "To identify qualified prospects whose responses fit the intended market analysis. 辨識符合研究市場範圍、可納入分析的合格潛在顧客。",
+        "To force every respondent to state a single favorite brand preference. 強制每一位受訪者表明唯一最喜歡的品牌偏好。",
+        "To calculate the exact distance between brands on a competition map. 計算競爭圖譜中各品牌之間的精確距離。",
+        "To replace binary coding with open-ended descriptions of consumer behavior. 以開放式行為描述取代二元編碼資料。"
+      ],
+      answerIndex: 0
+    }
+  ];
+
+  var LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  // 題號：Q1. / Question 1: / 第1題 / 題目1 / (1) / 1. / 1、 / 1) 等，一律從題幹前面刪除。
+  // 純數字題號後面必須接分隔符號，且分隔符號後不能緊接數字（避免把 3.5、10:30 誤判成題號）。
+  var reQuestion = /^(?:第\s*(\d+)\s*題\s*[.、．:：)）]?|(?:Question|Q|題目|題)\s*(\d+)\s*[.、．:：)）]?|[(（]\s*(\d+)\s*[)）]|(\d+)\s*[.、．:：)）](?!\d))\s*(.*)$/i;
+  function matchQuestion(line){
+    var m = line.match(reQuestion);
+    if (!m) return null;
+    var bare = m[3] !== undefined || m[4] !== undefined;
+    return {num: parseInt(m[1] || m[2] || m[3] || m[4], 10), bare: bare, stem: m[5] || ""};
+  }
+  var reOption = /^[(（]?\s*([A-Za-z])\s*[)\.）、．]\s*(.+)$/;
+  var reAnswer = /^(?:ANSWER|Ans|Answer|答案|正確答案)\s*[:：]?\s*([A-Za-z])\b/i;
+  var reExplanation = /^(?:Explanation|解析|詳解|說明)\s*[:：]/i;
+
+  function parseAiken(rawText){
+    var lines = rawText.split(/\r\n|\r|\n/);
+    var questions = [];
+    var problems = [];
+    var current = null;
+    var skipMode = false;
+    var lastNum = null;
+    // 「題目之間」的暫存區：ANSWER 之後（或檔案開頭）到下一題之前出現的內容先放這裡。
+    // 遇到以 A 開頭的選項時，只取緊鄰選項 A 的最後一個段落當題幹，
+    // 其餘文字說明、表格內容一律丟棄；圖片在轉成文字時本來就不會留下。
+    var pending = [];
+
+    function lastParagraph(buf){
+      var end = buf.length;
+      while (end > 0 && buf[end - 1] === "") end--;
+      var start = end;
+      while (start > 0 && buf[start - 1] !== "") start--;
+      return buf.slice(start, end).join(" ");
+    }
+
+    function finalize(q){
+      if (!q) return;
+      var stem = q.stem.trim();
+      if (!stem && q.options.length === 0) return; // pure noise, ignore silently
+      if (!stem){
+        problems.push({stem: "（無題幹）", reason: "選項 A 前面找不到題幹段落"});
+        return;
+      }
+      if (q.options.length < 2){
+        problems.push({stem: stem || "（無題幹）", reason: "選項少於兩個（只偵測到 " + q.options.length + " 個）"});
+        return;
+      }
+      if (!q.answerLetter){
+        problems.push({stem: stem, reason: "找不到正確答案標記（Ans / Answer / 答案）"});
+        return;
+      }
+      var idx = -1;
+      for (var i = 0; i < q.options.length; i++){
+        if (q.options[i].letter.toUpperCase() === q.answerLetter.toUpperCase()){ idx = i; break; }
+      }
+      if (idx === -1){
+        problems.push({stem: stem, reason: "正確答案標的字母「" + q.answerLetter + "」對不上任何一個選項"});
+        return;
+      }
+      questions.push({stem: stem, options: q.options.map(function(o){ return o.text.trim(); }), answerIndex: idx});
+    }
+
+    for (var li = 0; li < lines.length; li++){
+      var raw = lines[li];
+      var line = raw.trim();
+
+      // 空行只用來界定「解析內容到此為止」，不再直接觸發整題結束——
+      // 有些檔案把 Ans 跟 Explanation 拆成兩個段落，中間就會有一個空行，
+      // 如果空行本身就把題目狀態重置，Explanation 那段會被誤判成新的一題。
+      if (line === ""){
+        if (skipMode) skipMode = false;
+        if (!current || current.answerLetter) pending.push("");
+        continue;
+      }
+
+      if (skipMode){
+        // 解析裡面常有「1. … 2. …」的條列；純數字題號只有在剛好接續上一題題號時才視為新題目。
+        var sq = matchQuestion(line);
+        if (sq && (!sq.bare || lastNum === null || sq.num === lastNum + 1)){
+          skipMode = false; // 直接落下去，讓這一行照正常規則被當成新題目開頭處理
+        } else {
+          continue;
+        }
+      }
+
+      var mAns = line.match(reAnswer);
+      if (mAns && current && current.options.length > 0 && !current.answerLetter){
+        current.answerLetter = mAns[1].toUpperCase();
+        continue;
+      }
+
+      if (reExplanation.test(line)){
+        finalize(current);
+        current = null;
+        skipMode = true;
+        continue;
+      }
+
+      var mQ = matchQuestion(line);
+      // 題目之間（ANSWER 後）的純數字開頭行，只有接續上一題題號才當新題目；
+      // 其他（如說明裡的條列）先放進暫存區，必要時由選項 A 回頭認定題幹。
+      if (mQ && mQ.bare && (!current || current.answerLetter) && lastNum !== null && mQ.num !== lastNum + 1) mQ = null;
+      if (mQ){
+        finalize(current);
+        lastNum = mQ.num;
+        current = {stem: mQ.stem, options: [], answerLetter: null};
+        pending = [];
+        continue;
+      }
+
+      var mOpt = line.match(reOption);
+
+      if (!current || current.answerLetter){
+        if (mOpt && mOpt[1].toUpperCase() === "A"){
+          finalize(current);
+          var stemText = lastParagraph(pending);
+          var sq2 = matchQuestion(stemText);
+          if (sq2){ stemText = sq2.stem; lastNum = sq2.num; }
+          current = {stem: stemText, options: [{letter: mOpt[1], text: mOpt[2]}], answerLetter: null};
+          pending = [];
+        } else {
+          pending.push(line);
+        }
+        continue;
+      }
+
+      if (mOpt){
+        current.options.push({letter: mOpt[1], text: mOpt[2]});
+        continue;
+      }
+
+      if (current.options.length === 0){
+        current.stem = (current.stem ? current.stem + " " : "") + line;
+      } else {
+        var last = current.options[current.options.length - 1];
+        last.text += " " + line;
+      }
+    }
+    finalize(current);
+
+    return {questions: questions, problems: problems};
+  }
+
+  // Word 裡常見用 Shift+Enter（手動換行 <w:br/>）把一整題擠在同一個段落裡；
+  // mammoth 的 extractRawText 會直接把 <w:br/> 吃掉、不留痕跡，導致整題黏成一行，
+  // 所以改用 convertToHtml 保留 <br>，再自己依 <br> 與段落／清單邊界還原成一行一行。
+  function htmlToLines(html){
+    var doc = new DOMParser().parseFromString(html, "text/html");
+    var lines = [];
+
+    function pushInlineChunks(el){
+      var parts = el.innerHTML.split(/<br\s*\/?>/i);
+      parts.forEach(function(part){
+        var tmp = doc.createElement("div");
+        tmp.innerHTML = part;
+        var text = (tmp.textContent || "").replace(/\s+/g, " ").trim();
+        if (text) lines.push(text);
+      });
+    }
+
+    Array.prototype.forEach.call(doc.body.children, function(el){
+      var tag = el.tagName;
+      if (tag === "P" || /^H[1-6]$/.test(tag)){
+        pushInlineChunks(el);
+        lines.push(""); // 段落邊界視為一次題目/題組的斷點
+      } else if (tag === "OL" || tag === "UL"){
+        Array.prototype.forEach.call(el.querySelectorAll("li"), function(li){
+          var text = (li.textContent || "").replace(/\s+/g, " ").trim();
+          if (text) lines.push(text);
+        });
+      } else if (tag === "TABLE"){
+        Array.prototype.forEach.call(el.querySelectorAll("td, th"), function(cell){
+          var text = (cell.textContent || "").replace(/\s+/g, " ").trim();
+          if (text) lines.push(text);
+        });
+        lines.push("");
+      }
+    });
+
+    return lines.join("\n");
+  }
+
+  // 純文字：每一行視同 Word 的一個段落（行與行之間補上段落邊界），
+  // 因此「選項 A 前面那一段」就是選項 A 的前一行。
+  function textToLines(text){
+    var out = [];
+    text.replace(/^\uFEFF/, "").split(/\r\n|\r|\n/).forEach(function(l){
+      var t = l.replace(/[\s\u3000]+/g, " ").trim();
+      if (t) out.push(t);
+      out.push("");
+    });
+    return out.join("\n");
+  }
+
+  // .txt 先試 UTF-8，若有無法解碼的位元組再改用 Big5（Windows 記事本舊檔常見）。
+  function decodeText(buf){
+    try { return new TextDecoder("utf-8", {fatal: true}).decode(buf); }
+    catch (e){ return new TextDecoder("big5").decode(buf); }
+  }
+
+  function toAiken(questions){
+    return questions.map(function(q){
+      var lines = [q.stem];
+      q.options.forEach(function(text, i){
+        lines.push(LETTERS[i] + ". " + text);
+      });
+      lines.push("ANSWER: " + LETTERS[q.answerIndex]);
+      return lines.join("\n");
+    }).join("\n\n") + "\n";
+  }
+
+  // ---- rendering ----
+  var els = {
+    filenameLabel: document.getElementById("filenameLabel"),
+    convertBtn: document.getElementById("convertBtn"),
+    fileInput: document.getElementById("fileInput"),
+    dropzone: document.getElementById("dropzone"),
+    statTotal: document.getElementById("statTotal"),
+    statOk: document.getElementById("statOk"),
+    statBad: document.getElementById("statBad"),
+    sampleNote: document.getElementById("sampleNote"),
+    warnings: document.getElementById("warnings"),
+    notices: document.getElementById("notices"),
+    qlist: document.getElementById("qlist"),
+    moreNote: document.getElementById("moreNote"),
+    output: document.getElementById("output"),
+    copyBtn: document.getElementById("copyBtn"),
+    downloadBtn: document.getElementById("downloadBtn"),
+    toast: document.getElementById("toast")
+  };
+
+  var state = { questions: sampleQuestions, problems: [], isSample: true };
+  var PREVIEW_CAP = 6;
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function render(){
+    var total = state.questions.length + state.problems.length;
+    els.statTotal.textContent = total;
+    els.statOk.textContent = state.questions.length;
+    els.statBad.textContent = state.problems.length;
+
+    els.sampleNote.hidden = !state.isSample;
+
+    if (state.problems.length){
+      els.warnings.hidden = false;
+      els.warnings.innerHTML = state.problems.map(function(p){
+        return '<div class="warning"><b>需檢查：</b>' + escapeHtml(p.reason) + '　—　「' + escapeHtml(p.stem.slice(0,60)) + (p.stem.length>60?'…':'') + '」</div>';
+      }).join("");
+    } else {
+      els.warnings.hidden = true;
+      els.warnings.innerHTML = "";
+    }
+
+    // 題幹含「(圖)」的題目照常輸出，只提醒匯入 Moodle 後要手動補圖。
+    var reImg = /[(（]\s*圖\s*[)）]/;
+    var imgList = [];
+    state.questions.forEach(function(q, i){ if (reImg.test(q.stem)) imgList.push({n: i + 1, stem: q.stem}); });
+    if (imgList.length){
+      els.notices.hidden = false;
+      els.notices.innerHTML = '<div class="notice"><b>需貼圖（' + imgList.length + ' 題）：</b>以下題目標有「(圖)」，匯入 Moodle 後請手動補上圖片。</div>' +
+        imgList.map(function(p){
+          return '<div class="notice"><b>第 ' + p.n + ' 題</b>　「' + escapeHtml(p.stem.slice(0,60)) + (p.stem.length>60?'…':'') + '」</div>';
+        }).join("");
+    } else {
+      els.notices.hidden = true;
+      els.notices.innerHTML = "";
+    }
+
+    var shown = state.questions.slice(0, PREVIEW_CAP);
+    els.qlist.innerHTML = shown.map(function(q){
+      var opts = q.options.map(function(text, i){
+        var isCorrect = i === q.answerIndex;
+        return '<div class="opt' + (isCorrect ? ' correct' : '') + '"><span class="chip">' + LETTERS[i] + '</span><span>' + escapeHtml(text) + '</span></div>';
+      }).join("");
+      return '<div class="qcard">' + (reImg.test(q.stem) ? '<span class="img-tag">需貼圖</span>' : '') + '<div class="stem">' + escapeHtml(q.stem) + '</div><div class="opts">' + opts + '</div></div>';
+    }).join("");
+
+    if (state.questions.length > PREVIEW_CAP){
+      els.moreNote.hidden = false;
+      els.moreNote.textContent = "還有 " + (state.questions.length - PREVIEW_CAP) + " 題已包含在下方輸出內容中，這裡只預覽前 " + PREVIEW_CAP + " 題。";
+    } else {
+      els.moreNote.hidden = true;
+    }
+
+    els.output.value = state.questions.length ? toAiken(state.questions) : "";
+  }
+
+  function showToast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ els.toast.classList.remove("show"); }, 2400);
+  }
+
+  // ---- file handling ----
+  var pendingFile = null;
+
+  function setFile(file){
+    if (!file) return;
+    if (!/\.(docx|txt)$/i.test(file.name)){
+      showToast("請上傳 .docx 或 .txt 檔案");
+      return;
+    }
+    pendingFile = file;
+    els.filenameLabel.textContent = file.name;
+    updateConvertBtn();
+  }
+
+  var activeTab = "file";
+  var pasteInput = document.getElementById("pasteInput");
+  var panels = {file: document.getElementById("panelFile"), paste: document.getElementById("panelPaste")};
+  function updateConvertBtn(){
+    els.convertBtn.disabled = activeTab === "file" ? !pendingFile : !pasteInput.value.trim();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(btn){
+    btn.addEventListener("click", function(){
+      activeTab = btn.getAttribute("data-tab");
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(b){ b.classList.toggle("active", b === btn); });
+      panels.file.hidden = activeTab !== "file";
+      panels.paste.hidden = activeTab !== "paste";
+      updateConvertBtn();
+    });
+  });
+  pasteInput.addEventListener("input", updateConvertBtn);
+
+  els.fileInput.addEventListener("change", function(e){
+    setFile(e.target.files && e.target.files[0]);
+  });
+
+  ["dragover"].forEach(function(evt){
+    els.dropzone.addEventListener(evt, function(e){ e.preventDefault(); els.dropzone.classList.add("drag"); });
+  });
+  ["dragleave","drop"].forEach(function(evt){
+    els.dropzone.addEventListener(evt, function(e){ e.preventDefault(); els.dropzone.classList.remove("drag"); });
+  });
+  els.dropzone.addEventListener("drop", function(e){
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    setFile(f);
+  });
+
+  els.convertBtn.addEventListener("click", function(){
+    var job;
+    if (activeTab === "paste"){
+      if (!pasteInput.value.trim()) return;
+      job = Promise.resolve(textToLines(pasteInput.value));
+    } else {
+      if (!pendingFile) return;
+      if (/\.txt$/i.test(pendingFile.name)){
+        job = pendingFile.arrayBuffer().then(function(buf){ return textToLines(decodeText(buf)); });
+      } else {
+        if (!window.mammoth){ showToast("Word 讀取元件尚未載入，請稍候再試"); return; }
+        job = pendingFile.arrayBuffer().then(function(buf){
+          return window.mammoth.convertToHtml({arrayBuffer: buf});
+        }).then(function(result){ return htmlToLines(result.value); });
+      }
+    }
+    els.convertBtn.disabled = true;
+    els.convertBtn.textContent = "轉換中…";
+    job.then(function(lines){
+      var parsed = parseAiken(lines);
+      state = {questions: parsed.questions, problems: parsed.problems, isSample: false};
+      render();
+      showToast("轉換完成：" + parsed.questions.length + " 題成功");
+    }).catch(function(err){
+      console.error(err);
+      showToast("讀取失敗，請確認檔案是否為正常的 .docx 或 .txt");
+    }).finally(function(){
+      updateConvertBtn();
+      els.convertBtn.textContent = "開始轉換";
+    });
+  });
+
+  // ---- copy / download ----
+  els.copyBtn.addEventListener("click", function(){
+    var text = els.output.value;
+    if (!text){ showToast("目前沒有內容可複製"); return; }
+    var done = function(){ showToast("已複製到剪貼簿"); };
+    var fail = function(){
+      els.output.removeAttribute("readonly");
+      els.output.focus();
+      els.output.select();
+      try { document.execCommand("copy"); done(); }
+      catch (e){ showToast("複製失敗，請手動選取後 Ctrl+C"); }
+      els.output.setAttribute("readonly", "true");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(fail);
+    } else {
+      fail();
+    }
+  });
+
+  els.downloadBtn.addEventListener("click", function(){
+    var text = els.output.value;
+    if (!text){ showToast("目前沒有內容可下載"); return; }
+    var filename = state.isSample ? "aiken_範例.txt" : "aiken_轉換結果.txt";
+    try {
+      var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      showToast("已下載 " + filename);
+    } catch (err){
+      console.error(err);
+      showToast("下載失敗，請改用「複製全部」");
+    }
+  });
+
+  render();
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>教學工具箱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#f5f3ee; --surface:#ffffff; --surface-2:#faf8f3; --border:#ddd7c9;
+    --ink:#232019; --ink-soft:#655e4d; --ink-faint:#8f886f;
+    --accent:#28594f; --accent-strong:#1b4139; --accent-soft:#e1ece7;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141612; --surface:#1c1f1a; --surface-2:#20241e; --border:#373d33;
+      --ink:#eae7dc; --ink-soft:#b7b3a1; --ink-faint:#847e69;
+      --accent:#79bda7; --accent-strong:#9bd2bf; --accent-soft:#213b34;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.7}
+  main{max-width:880px;margin:0 auto;padding:48px 16px 64px}
+  .eyebrow{margin:0 0 8px;font-size:12.5px;letter-spacing:.12em;color:var(--accent);font-weight:700}
+  h1{font-family:"Noto Serif TC",serif;font-size:clamp(26px,4vw,34px);margin:0 0 10px}
+  .lede{margin:0 0 28px;color:var(--ink-soft);max-width:62ch}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0 0 32px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:14px}
+  .flow span.s{font-weight:700;color:var(--accent-strong)}
+  .flow span.a{color:var(--ink-faint)}
+  section{margin-bottom:30px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+  .no{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:15px;transform:translateY(4px)}
+  h2{font-family:"Noto Serif TC",serif;font-size:21px;margin:0}
+  .sec-desc{margin:0 0 12px 42px;color:var(--ink-soft);font-size:14px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px;margin-left:42px}
+  @media (max-width:560px){.sec-desc,.cards{margin-left:0}}
+  a.tool{display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+  a.tool:hover{border-color:var(--accent);transform:translateY(-1px)}
+  a.tool strong{display:block;font-size:16.5px;color:var(--accent-strong);margin-bottom:2px}
+  a.tool span{display:block;font-size:13.5px;color:var(--ink-soft)}
+  a.tool em{display:inline-block;margin-top:8px;font-style:normal;font-size:12px;color:var(--ink-faint);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:0 9px}
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--ink-faint);font-size:13px}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">教師使用</p>
+  <h1>教學工具箱</h1>
+  <p class="lede">課堂管理與測驗準備的小工具。所有計算都在您的瀏覽器中完成，名冊與成績只存在您使用的這台電腦的瀏覽器裡，不會上傳。</p>
+
+  <section>
+    <div class="sec-head"><span class="no">1</span><h2>成績管理</h2></div>
+    <p class="sec-desc">把課堂作答紀錄依姓名合併進學生名冊。</p>
+    <div class="cards">
+      <a class="tool" href="./grades/"><strong>成績登錄器</strong><span>貼上名冊與作答紀錄，依選項給分並合併成一個分數欄，可複製或匯出 CSV。</span><em>本機儲存</em></a>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="no">2</span><h2>測驗準備</h2></div>
+    <p class="sec-desc">把選擇題整理成 Moodle 可以匯入的格式。</p>
+    <div class="cards">
+      <a class="tool" href="./aiken/"><strong>Aiken 轉換器</strong><span>Word、txt 或貼上的選擇題，轉成 Moodle 匯入用的 Aiken 格式。</span><em>Moodle</em></a>
+    </div>
+  </section>
+
+  <footer>成績登錄器的資料只存在這台電腦、這個瀏覽器中；換電腦或換瀏覽器不會同步，請以「匯出 CSV」備份。</footer>
+</main>
+</body>
+</html>

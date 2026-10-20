@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成績登錄器</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  html, body{background:var(--bg,#F3F5F4); margin:0;}
+  :root{
+    --bg:#F3F5F4; --surface:#FFFFFF; --surface-2:#EAEEEC; --border:#D7DEDB;
+    --ink:#1D2422; --ink-muted:#5B655F;
+    --accent:#1F6D57; --accent-ink:#FFFFFF; --accent-soft:#E1EFE9;
+    --bad:#B23A3A; --bad-soft:#FBEAEA;
+    --shadow:0 1px 2px rgba(20,30,26,.06), 0 8px 24px -12px rgba(20,30,26,.2);
+    --radius:12px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121614; --surface:#1A211E; --surface-2:#212A26; --border:#33403B;
+      --ink:#E7EEEA; --ink-muted:#98A69F;
+      --accent:#5FB394; --accent-ink:#08130F; --accent-soft:#1D3229;
+      --bad:#E27272; --bad-soft:#3A1E1E;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121614; --surface:#1A211E; --surface-2:#212A26; --border:#33403B;
+    --ink:#E7EEEA; --ink-muted:#98A69F;
+    --accent:#5FB394; --accent-ink:#08130F; --accent-soft:#1D3229;
+    --bad:#E27272; --bad-soft:#3A1E1E;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  [hidden]{display:none !important;}
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Work Sans", system-ui, -apple-system, "Noto Sans TC", sans-serif;
+    padding-inline:20px; padding-block:36px;
+  }
+  .wrap{max-width:980px; margin:0 auto; display:flex; flex-direction:column; gap:20px;}
+
+  header{display:flex; flex-direction:column; gap:6px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--accent); font-weight:600;
+  }
+  h1{font-size:clamp(24px,4vw,32px); margin:0; font-weight:700; text-wrap:balance;}
+  header p{margin:0; color:var(--ink-muted); font-size:14.5px; max-width:64ch; line-height:1.6;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:20px;
+  }
+  .card h2{
+    font-size:13px; text-transform:uppercase; letter-spacing:.07em; font-weight:700;
+    color:var(--ink-muted); margin:0 0 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .card h2 .hint{font-size:12px; text-transform:none; letter-spacing:0; font-weight:400; color:var(--ink-muted);}
+
+  textarea#rosterInput, textarea#mergeInput{
+    width:100%; min-height:130px; resize:vertical; border:1px solid var(--border); border-radius:9px;
+    padding:12px; font-family:"IBM Plex Mono", monospace; font-size:13px; line-height:1.6;
+    background:var(--surface-2); color:var(--ink);
+  }
+
+  .btn{
+    font-family:inherit; font-size:14px; font-weight:600; border-radius:9px; border:1px solid transparent;
+    padding:9px 15px; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+    transition:opacity .15s, transform .05s; white-space:nowrap;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--accent); color:var(--accent-ink);}
+  .btn-primary:disabled{opacity:.4; cursor:not-allowed;}
+  .btn-ghost{background:var(--surface-2); color:var(--ink); border-color:var(--border);}
+  .btn-danger{background:var(--bad-soft); color:var(--bad); border-color:transparent;}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center;}
+
+  .table-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:10px;}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:13.5px;}
+  thead th{
+    position:sticky; top:0; background:var(--surface-2); text-align:left; font-weight:600;
+    padding:9px 10px; border-bottom:1px solid var(--border); white-space:nowrap; color:var(--ink-muted);
+  }
+  thead th.col-score{color:var(--ink); text-align:center;}
+  tbody td{padding:6px 10px; border-bottom:1px solid var(--border); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-2);}
+  td.col-name{font-weight:500; white-space:normal; min-width:110px;}
+  td.col-id{font-family:"IBM Plex Mono", monospace; color:var(--ink-muted);}
+  td.col-no{font-family:"IBM Plex Mono", monospace; color:var(--ink-muted); text-align:center;}
+  td.col-score{text-align:center;}
+  td.col-score input{
+    width:64px; text-align:center; border:1px solid var(--border); border-radius:6px; padding:5px 4px;
+    font-family:"IBM Plex Mono", monospace; font-size:13px; background:var(--surface); color:var(--ink);
+  }
+  .empty-hint{padding:26px 10px; text-align:center; color:var(--ink-muted); font-size:13.5px;}
+
+  .merge-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px;}
+  .merge-row input[type=text]{
+    border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;
+    font-family:inherit; background:var(--surface-2); color:var(--ink); width:200px;
+  }
+  .merge-summary{
+    margin-top:12px; font-size:13px; color:var(--ink-muted); background:var(--surface-2);
+    border-radius:8px; padding:9px 12px;
+  }
+  .option-scores{
+    margin-top:12px; border:1px solid var(--border); border-radius:10px; padding:12px 14px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .option-scores .opt-title{font-size:13px; color:var(--ink-muted); line-height:1.5;}
+  .option-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .option-row .opt-label{flex:1 1 220px; font-size:13.5px; font-weight:500; min-width:0; overflow-wrap:anywhere;}
+  .option-row .opt-count{font-size:12.5px; color:var(--ink-muted); font-variant-numeric:tabular-nums; min-width:44px;}
+  .option-row input[type=number]{
+    width:84px; text-align:center; border:1px solid var(--border); border-radius:6px; padding:6px 4px;
+    font-family:"IBM Plex Mono", monospace; font-size:13px; background:var(--surface); color:var(--ink);
+  }
+  .unmatched{margin-top:12px; display:flex; flex-direction:column; gap:6px;}
+  .unmatched-row{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:var(--surface-2); border-radius:8px; padding:7px 12px; font-size:13px;
+  }
+  .unmatched-row .name{font-weight:600;}
+
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+    background:var(--ink); color:var(--bg); font-size:13px; padding:9px 16px; border-radius:20px;
+    box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:opacity .2s, bottom .2s;
+  }
+  .toast.show{opacity:1; bottom:32px;}
+
+  .save-state{font-size:12px; color:var(--ink-muted); display:flex; align-items:center; gap:6px;}
+  .save-state .dot{width:6px; height:6px; border-radius:50%; background:var(--accent);}
+
+  footer{font-size:12.5px; color:var(--ink-muted); line-height:1.7; padding-block:2px 16px;}
+  footer code{font-family:"IBM Plex Mono", monospace; background:var(--surface-2); padding:1px 5px; border-radius:4px;}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<style>.toolbox-back{display:block;padding:10px 16px;font:500 14px/1.4 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:#ffffffcc;border-bottom:1px solid #d7dce3}.toolbox-back a{color:#2b4c7e;text-decoration:none}.toolbox-back a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.toolbox-back{background:#1b1e26cc;border-bottom-color:#333846}.toolbox-back a{color:#7fa3d6}}</style>
+<nav class="toolbox-back"><a href="../">← 回教學工具箱</a></nav>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">本機儲存・免登入</div>
+    <h1>成績登錄器</h1>
+    <p>貼上學生名冊，再貼上作答／小考紀錄，依姓名自動合併成一個 X 分數欄位，存在這台電腦的瀏覽器裡，換頁、關機重開都還在。</p>
+  </header>
+
+  <section class="card">
+    <h2>1. 貼上學生名冊<span class="hint">格式：no（Tab或逗號分隔）id　name，每行一位學生</span></h2>
+    <textarea id="rosterInput" placeholder="no&#9;id&#9;name&#10;1&#9;999999901&#9;小花&#10;2&#9;999999902&#9;小明"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="loadRosterBtn">匯入名冊</button>
+      <span style="font-size:12.5px; color:var(--ink-muted);">匯入會直接覆蓋目前的名冊與已合併的分數，請先確認。</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2. 貼上作答／小考紀錄，依選項給分並合併成 X 欄位<span class="hint">第1欄時間戳記、第2欄姓名、第3欄作答選項；標題列最後一欄若是 X，就直接用該分數</span></h2>
+    <textarea id="mergeInput" placeholder="時間戳記&#9;姓名&#9;題目內容&#10;2026/9/20 下午11:17:45&#9;小明&#9;B) 女"></textarea>
+    <div class="option-scores" id="optionScores" hidden></div>
+    <div class="merge-row">
+      <button class="btn btn-primary" id="mergeBtn">合併進名冊</button>
+      <span style="font-size:12.5px; color:var(--ink-muted);">合併後會建立（或覆蓋）唯一的「X」欄位，一次只會存在一個 X。</span>
+    </div>
+    <div class="merge-summary" id="mergeSummary" hidden></div>
+    <div class="unmatched" id="unmatchedList"></div>
+  </section>
+
+  <section class="card">
+    <h2>3. 登錄表</h2>
+    <div class="table-scroll">
+      <table id="grid">
+        <thead><tr id="headRow"></tr></thead>
+        <tbody id="bodyRows"></tbody>
+      </table>
+    </div>
+    <div class="empty-hint" id="emptyHint" hidden>先在上面貼上名冊並按「匯入名冊」，這裡就會出現登錄表。</div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="copyGridBtn">複製登錄表</button>
+      <button class="btn btn-ghost" id="exportBtn">匯出 CSV</button>
+      <button class="btn btn-danger" id="clearBtn">清空所有資料</button>
+      <span class="save-state"><span class="dot"></span><span id="saveLabel">已自動儲存在本機瀏覽器</span></span>
+    </div>
+  </section>
+
+  <footer>
+    資料只存在「這一台電腦、這一個瀏覽器」的本機儲存空間（localStorage），換電腦或換瀏覽器不會同步，也不會被清除除非你自己清瀏覽器資料或按「清空所有資料」。要備份或交給別人，請用「匯出 CSV」存成檔案。
+  </footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "gradeRecorder_v1";
+
+  var state = {
+    students: [],   // {no, id, name, scores: {colId: number}}
+    columns: []     // {id, name} — 目前固定只會有一個名叫 X 的欄位
+  };
+
+  var els = {
+    rosterInput: document.getElementById("rosterInput"),
+    loadRosterBtn: document.getElementById("loadRosterBtn"),
+    headRow: document.getElementById("headRow"),
+    bodyRows: document.getElementById("bodyRows"),
+    emptyHint: document.getElementById("emptyHint"),
+    grid: document.getElementById("grid"),
+    exportBtn: document.getElementById("exportBtn"),
+    clearBtn: document.getElementById("clearBtn"),
+    toast: document.getElementById("toast"),
+    saveLabel: document.getElementById("saveLabel"),
+    mergeInput: document.getElementById("mergeInput"),
+    optionScores: document.getElementById("optionScores"),
+    mergeBtn: document.getElementById("mergeBtn"),
+    mergeSummary: document.getElementById("mergeSummary"),
+    unmatchedList: document.getElementById("unmatchedList"),
+    copyGridBtn: document.getElementById("copyGridBtn")
+  };
+
+  var pendingUnmatched = []; // {name, value} entries not found in roster, shown as a plain list
+  var optionScoreMap = {};   // 選項文字 → 使用者手動輸入的分數（字串，空白代表尚未填）
+  var currentOptions = [];   // 目前貼上的紀錄中偵測到的選項，順序與畫面上的輸入框一致
+
+  // ---- clipboard helper ----
+  function copyToClipboard(text, successMsg){
+    var done = function(){ showToast(successMsg || "已複製到剪貼簿"); };
+    var fail = function(){
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand("copy"); done(); }
+      catch (e){ showToast("複製失敗，請手動選取後 Ctrl+C"); }
+      document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(fail);
+    } else {
+      fail();
+    }
+  }
+
+  function showToast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ els.toast.classList.remove("show"); }, 2200);
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function uid(){
+    return "c" + Math.random().toString(36).slice(2, 9);
+  }
+
+  // ---- persistence ----
+  function save(){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      els.saveLabel.textContent = "已自動儲存在本機瀏覽器";
+    } catch (e){
+      els.saveLabel.textContent = "本機儲存失敗（可能是私密瀏覽模式），資料只在這次分頁有效";
+    }
+  }
+
+  function load(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.students) && Array.isArray(parsed.columns)){
+        state = parsed;
+      }
+    } catch (e){ /* ignore corrupt data, start fresh */ }
+  }
+
+  // ---- roster parsing ----
+  function splitRow(line){
+    if (line.indexOf("\t") !== -1) return line.split("\t");
+    if (line.indexOf(",") !== -1) return line.split(",");
+    return line.split(/\s{2,}/);
+  }
+
+  function looksLikeHeader(parts){
+    return parts.some(function(p){
+      return /^(no|id|name|座號|學號|姓名|編號)$/i.test(p.trim());
+    });
+  }
+
+  function parseRoster(text){
+    var lines = text.split(/\r\n|\r|\n/).map(function(l){ return l.trim(); }).filter(function(l){ return l !== ""; });
+    if (!lines.length) return [];
+    if (looksLikeHeader(splitRow(lines[0]))) lines.shift();
+    return lines.map(function(line){
+      var parts = splitRow(line).map(function(p){ return p.trim(); });
+      return {
+        no: parts[0] || "",
+        id: parts[1] || "",
+        name: parts[2] || "",
+        scores: {}
+      };
+    }).filter(function(s){ return s.id || s.name; });
+  }
+
+  // ---- merge-by-name import (e.g. Kahoot/Google Form quiz export) ----
+  // 固定格式：第1欄時間戳記、第2欄姓名、第3欄是作答選項（分數由使用者依選項手動輸入）
+  // Google 試算表／Excel 複製出來的 Tab 分隔文字，含換行或雙引號的儲存格會被加上引號，
+  // 逐字元解析才不會把一格內的換行誤當成新的一列。
+  function parseTabRows(text){
+    var rows = [], row = [], cur = "", inQ = false, i, c;
+    for (i = 0; i < text.length; i++){
+      c = text.charAt(i);
+      if (inQ){
+        if (c === '"'){
+          if (text.charAt(i + 1) === '"'){ cur += '"'; i++; }
+          else inQ = false;
+        } else cur += c;
+      } else if (c === '"' && cur === ""){
+        inQ = true;
+      } else if (c === "\t"){
+        row.push(cur); cur = "";
+      } else if (c === "\n" || c === "\r"){
+        if (c === "\r" && text.charAt(i + 1) === "\n") i++;
+        row.push(cur); rows.push(row); row = []; cur = "";
+      } else cur += c;
+    }
+    if (cur !== "" || row.length){ row.push(cur); rows.push(row); }
+    return rows;
+  }
+
+  function parseMergeData(text){
+    var rows;
+    if (text.indexOf("\t") !== -1){
+      rows = parseTabRows(text);
+    } else {
+      rows = text.split(/\r\n|\r|\n/).map(function(l){ return splitRow(l); });
+    }
+    rows = rows.map(function(r){
+      return r.map(function(p){ return p.replace(/\s+/g, " ").trim(); });
+    }).filter(function(r){ return r.some(function(p){ return p !== ""; }); });
+
+    var question = "";
+    var scoreIdx = -1; // 標題列中名為 X／x 的欄位（可能在第3欄或第4欄）：資料已有人工給分，直接使用
+    if (rows.length && /時間戳記|timestamp/i.test(rows[0].join(" "))){
+      var head = rows.shift();
+      question = head[2] || "";
+      for (var h = head.length - 1; h >= 2; h--){
+        if (head[h].toLowerCase() === "x"){ scoreIdx = h; break; }
+      }
+    }
+    var hasScore = scoreIdx !== -1;
+    var entries = rows.map(function(parts){
+      if (parts.length < 3 || !parts[1]) return null;
+      if (hasScore){
+        var raw = parts[scoreIdx] === undefined ? "" : parts[scoreIdx];
+        var v = Number(raw);
+        return {name: parts[1], answer: "", score: raw !== "" && isFinite(v) ? v : null};
+      }
+      return {name: parts[1], answer: parts[2]};
+    }).filter(Boolean);
+    return {question: question, entries: entries, hasScore: hasScore};
+  }
+
+  function norm(s){ return String(s).replace(/[\s　]+/g, ""); }
+
+  // 依序嘗試：姓名完全相同 → 填寫內容含有名冊的學號 → 填寫內容含有名冊的姓名
+  function findStudent(raw){
+    var n = norm(raw);
+    if (!n) return null;
+    var i, s;
+    for (i = 0; i < state.students.length; i++){
+      if (norm(state.students[i].name) === n) return {idx: i, how: ""};
+    }
+    for (i = 0; i < state.students.length; i++){
+      var id = norm(state.students[i].id);
+      if (id.length >= 5 && n.indexOf(id) !== -1) return {idx: i, how: "依學號比對"};
+    }
+    var best = -1, bestLen = 0, tie = false;
+    for (i = 0; i < state.students.length; i++){
+      s = norm(state.students[i].name);
+      if (s.length >= 2 && n.indexOf(s) !== -1){
+        if (s.length > bestLen){ best = i; bestLen = s.length; tie = false; }
+        else if (s.length === bestLen){ tie = true; }
+      }
+    }
+    if (best !== -1 && !tie) return {idx: best, how: "依姓名比對"};
+
+    // 寫錯字：長度相同（至少3個字）、只差一個字，且名冊裡只有一位符合
+    var near = [];
+    if (n.length >= 3){
+      for (i = 0; i < state.students.length; i++){
+        s = norm(state.students[i].name);
+        if (s.length !== n.length) continue;
+        var diff = 0;
+        for (var k = 0; k < s.length && diff < 2; k++){ if (s[k] !== n[k]) diff++; }
+        if (diff === 1) near.push(i);
+      }
+    }
+    if (near.length === 1) return {idx: near[0], how: "疑似比對（姓名差一個字，請確認）"};
+    return null;
+  }
+
+  // 同一位學生重複作答只取第一筆；對不上名冊的依填寫內容去重
+  function resolveEntries(entries){
+    var assigned = {};   // 名冊 index → {answer, note}
+    var unmatched = [];  // {name, answer}
+    var seenRaw = {};
+    entries.forEach(function(e){
+      var m = findStudent(e.name);
+      if (m){
+        if (!Object.prototype.hasOwnProperty.call(assigned, m.idx)){
+          assigned[m.idx] = {answer: e.answer, score: e.score, note: m.how ? m.how + "（原填：" + e.name + "）" : ""};
+        }
+      } else if (!seenRaw[e.name]){
+        seenRaw[e.name] = true;
+        unmatched.push({name: e.name, answer: e.answer, score: e.score});
+      }
+    });
+    return {assigned: assigned, unmatched: unmatched};
+  }
+
+  function renderOptionScores(){
+    var parsed = parseMergeData(els.mergeInput.value);
+    if (parsed.hasScore){
+      currentOptions = [];
+      els.optionScores.hidden = false;
+      els.optionScores.innerHTML = '<div class="opt-title">偵測到標題列有 X 欄，資料已有分數（共 ' +
+        parsed.entries.length + ' 筆），將直接使用，不需要依選項給分。</div>';
+      return;
+    }
+    var resolved = resolveEntries(parsed.entries);
+    var counts = {};
+    Object.keys(resolved.assigned).forEach(function(k){
+      var a = resolved.assigned[k].answer;
+      counts[a] = (counts[a] || 0) + 1;
+    });
+    resolved.unmatched.forEach(function(u){ counts[u.answer] = (counts[u.answer] || 0) + 1; });
+    currentOptions = Object.keys(counts).sort(function(a, b){ return a.localeCompare(b, "zh-Hant"); });
+
+    if (!currentOptions.length){
+      els.optionScores.hidden = true;
+      els.optionScores.innerHTML = "";
+      return;
+    }
+    els.optionScores.hidden = false;
+    var title = '<div class="opt-title">' + (parsed.question ? '題目：' + escapeHtml(parsed.question) + '<br>' : '') +
+      '請依選項輸入分數（同一人重複作答只算第一筆；沒填的選項以 0 分計算）</div>';
+    els.optionScores.innerHTML = title + currentOptions.map(function(opt, i){
+      var saved = Object.prototype.hasOwnProperty.call(optionScoreMap, opt) ? optionScoreMap[opt] : "";
+      return '<div class="option-row">' +
+        '<span class="opt-label">' + escapeHtml(opt) + '</span>' +
+        '<span class="opt-count">' + counts[opt] + ' 人</span>' +
+        '<input type="number" step="any" inputmode="decimal" placeholder="分數" data-opt-idx="' + i + '" value="' + escapeHtml(saved) + '">' +
+        '</div>';
+    }).join("");
+  }
+
+  els.mergeInput.addEventListener("input", renderOptionScores);
+
+  els.optionScores.addEventListener("input", function(e){
+    var t = e.target;
+    if (t.matches("input[data-opt-idx]")){
+      optionScoreMap[currentOptions[Number(t.getAttribute("data-opt-idx"))]] = t.value;
+    }
+  });
+
+  function renderUnmatched(){
+    if (!pendingUnmatched.length){
+      els.unmatchedList.innerHTML = "";
+      return;
+    }
+    els.unmatchedList.innerHTML = pendingUnmatched.map(function(u){
+      return '<div class="unmatched-row"><span class="name">' + escapeHtml(u.name) + '</span><span>' + escapeHtml(u.value) + ' 分</span></div>';
+    }).join("");
+  }
+
+  els.copyGridBtn.addEventListener("click", function(){
+    if (!state.students.length){ showToast("目前沒有資料可以複製"); return; }
+    var hasNote = state.students.some(function(s){ return s.note; });
+    var header = ["座號", "學號", "姓名"].concat(state.columns.map(function(c){ return c.name; }));
+    if (hasNote) header.push("備註");
+    var rows = [header.join("\t")];
+    state.students.forEach(function(s){
+      var row = [s.no, s.id, s.name];
+      state.columns.forEach(function(col){
+        var v = s.scores[col.id];
+        row.push(v === undefined || v === null ? "" : v);
+      });
+      if (hasNote) row.push(s.note || "");
+      rows.push(row.join("\t"));
+    });
+    copyToClipboard(rows.join("\n"), "已複製登錄表，可直接貼到 Excel");
+  });
+
+  els.mergeBtn.addEventListener("click", function(){
+    if (!state.students.length){ showToast("請先匯入名冊"); return; }
+    var colName = "X";
+    var text = els.mergeInput.value;
+    if (!text.trim()){ showToast("請先貼上要合併的紀錄"); return; }
+
+    var parsed = parseMergeData(text);
+    if (!parsed.entries.length){ showToast("沒有解析到任何資料，請確認格式"); return; }
+
+    // 依選項換算分數；同一位學生重複作答只取第一筆（由 resolveEntries 處理）
+    var emptyOptions = currentOptions.filter(function(opt){
+      var v = optionScoreMap[opt];
+      return v === undefined || v === "" || isNaN(Number(v));
+    });
+    var badScoreCount = 0;
+    function scoreOf(item){
+      if (parsed.hasScore){
+        if (item.score === null || item.score === undefined){ badScoreCount++; return 0; }
+        return item.score;
+      }
+      var raw = optionScoreMap[item.answer];
+      var v = Number(raw);
+      return (raw !== undefined && raw !== "" && isFinite(v)) ? v : 0;
+    }
+    var resolved = resolveEntries(parsed.entries);
+
+    // 一次只會有一個 X 欄位：已存在就覆蓋重算，不存在才新增
+    var col = state.columns.find(function(c){ return c.name === colName; });
+    if (!col){
+      col = {id: uid(), name: colName, weight: null};
+      state.columns.push(col);
+    }
+
+    var matchedCount = 0, fuzzyCount = 0;
+    state.students.forEach(function(s, idx){
+      var hit = resolved.assigned[idx];
+      if (hit){
+        s.scores[col.id] = scoreOf(hit);
+        s.note = hit.note;
+        matchedCount++;
+        if (hit.note) fuzzyCount++;
+      } else {
+        s.scores[col.id] = 0; // 名冊裡有、但這次紀錄沒出現 → 視為 0
+        s.note = "";
+      }
+    });
+
+    pendingUnmatched = resolved.unmatched.map(function(u){ return {name: u.name, value: scoreOf(u)}; });
+    var noAnswerCount = state.students.length - matchedCount;
+
+    save();
+    render();
+    renderUnmatched();
+
+    els.mergeSummary.hidden = false;
+    els.mergeSummary.textContent = "已建立「" + colName + "」欄位：" + matchedCount + " 位配對成功" +
+      (fuzzyCount ? "（其中 " + fuzzyCount + " 位不是姓名完全相同，是依學號／姓名／疑似寫錯字比對，已在登錄表「備註」欄註記，請確認）" : "") + "、" +
+      noAnswerCount + " 位名冊中沒作答（記為 0 分）、" +
+      pendingUnmatched.length + " 筆名字對不上名冊（列在下方）。" +
+      (emptyOptions.length ? "　注意：「" + emptyOptions.join("」「") + "」沒有填分數，已以 0 分計算。" : "") +
+      (badScoreCount ? "　注意：有 " + badScoreCount + " 筆 X 欄不是數字，已以 0 分計算。" : "");
+
+    els.mergeInput.value = "";
+    optionScoreMap = {};
+    renderOptionScores();
+    showToast("已合併進名冊");
+  });
+
+  // ---- rendering ----
+  function render(){
+    var hasData = state.students.length > 0;
+    els.grid.style.display = hasData ? "" : "none";
+    els.emptyHint.hidden = hasData;
+
+    // header
+    var hasNote = state.students.some(function(s){ return s.note; });
+    var headHtml = '<th>座號</th><th>學號</th><th>姓名</th>';
+    state.columns.forEach(function(col){
+      headHtml += '<th class="col-score" data-col="' + col.id + '">' + escapeHtml(col.name) + '</th>';
+    });
+    if (hasNote) headHtml += '<th>備註</th>';
+    els.headRow.innerHTML = headHtml;
+
+    // body
+    els.bodyRows.innerHTML = state.students.map(function(s, i){
+      var cells = '<td class="col-no">' + escapeHtml(s.no) + '</td>' +
+        '<td class="col-id">' + escapeHtml(s.id) + '</td>' +
+        '<td class="col-name">' + escapeHtml(s.name) + '</td>';
+      state.columns.forEach(function(col){
+        var v = s.scores[col.id];
+        cells += '<td class="col-score"><input type="number" inputmode="decimal" data-row="' + i + '" data-col="' + col.id + '" value="' + (v !== undefined && v !== null ? v : "") + '"></td>';
+      });
+      if (hasNote) cells += '<td class="col-note">' + escapeHtml(s.note || "") + '</td>';
+      return '<tr>' + cells + '</tr>';
+    }).join("");
+  }
+
+  // ---- events ----
+  els.loadRosterBtn.addEventListener("click", function(){
+    var text = els.rosterInput.value;
+    if (!text.trim()){ showToast("請先貼上名冊內容"); return; }
+    var students = parseRoster(text);
+    if (!students.length){ showToast("沒有解析到任何學生資料，請確認格式"); return; }
+    students.sort(function(a, b){
+      var na = Number(a.no), nb = Number(b.no);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return String(a.no).localeCompare(String(b.no));
+    });
+    state.students = students;
+    save();
+    render();
+    showToast("已匯入 " + students.length + " 位學生");
+  });
+
+  els.bodyRows.addEventListener("input", function(e){
+    var t = e.target;
+    if (t.matches("input[data-row][data-col]")){
+      var row = Number(t.getAttribute("data-row"));
+      var colId = t.getAttribute("data-col");
+      var val = t.value === "" ? "" : Number(t.value);
+      state.students[row].scores[colId] = val;
+      save();
+    }
+  });
+
+  els.clearBtn.addEventListener("click", function(){
+    if (!confirm("確定要清空名冊與所有已合併的分數嗎？這個動作無法復原。")) return;
+    state = {students: [], columns: []};
+    pendingUnmatched = [];
+    els.mergeSummary.hidden = true;
+    save();
+    render();
+    renderUnmatched();
+    showToast("已清空");
+  });
+
+  els.exportBtn.addEventListener("click", function(){
+    if (!state.students.length){ showToast("目前沒有資料可以匯出"); return; }
+    var hasNote = state.students.some(function(s){ return s.note; });
+    var header = ["座號", "學號", "姓名"].concat(state.columns.map(function(c){ return c.name; }));
+    if (hasNote) header.push("備註");
+    var rows = [header];
+    state.students.forEach(function(s){
+      var row = [s.no, s.id, s.name];
+      state.columns.forEach(function(col){
+        var v = s.scores[col.id];
+        row.push(v === undefined || v === null || v === "" ? "" : v);
+      });
+      if (hasNote) row.push(s.note || "");
+      rows.push(row);
+    });
+    var csv = rows.map(function(r){
+      return r.map(function(cell){
+        var str = String(cell);
+        if (/[",\n]/.test(str)) str = '"' + str.replace(/"/g, '""') + '"';
+        return str;
+      }).join(",");
+    }).join("\r\n");
+    var blob = new Blob(["﻿" + csv], {type: "text/csv;charset=utf-8"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "成績登錄.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    showToast("已下載 CSV");
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
