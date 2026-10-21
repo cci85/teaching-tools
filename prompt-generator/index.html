@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>教材 Prompt 產生器</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="toolbox-back"><a href="../">← 回教學工具箱</a></nav>
+<header>
+  <h1>教材／講義生成 Prompt 產生器（NotebookLM 用）</h1>
+  <p>填好左邊 → 右邊即時產生 Prompt → 按「複製」貼到 NotebookLM。欄位內容只記在這台電腦的這個瀏覽器裡。</p>
+</header>
+
+<nav id="tabs">
+  <button data-m="0" class="on"><b>0</b>教學主題菜單</button>
+  <button data-m="1"><b>1</b>講義生成</button>
+  <button data-m="2"><b>2</b>小組討論題</button>
+  <button data-m="3"><b>3</b>個人測驗題</button>
+  <button data-m="4"><b>4</b>白話解釋句子</button>
+</nav>
+
+<main>
+  <section class="card">
+    <!-- [0] 教學主題菜單 -->
+    <div class="pane on" data-m="0">
+      <h2>[0] 教學主題菜單</h2>
+      <p class="hint">獨立使用。先把教材上傳到同一個 Notebook 並開新對話，AI 會列出可教子主題給你勾選。</p>
+
+      <label class="f">文獻範圍 <small>一行一份 NotebookLM 文件標題；留空 = 全部上傳來源</small></label>
+      <textarea id="m0_docs" placeholder="Kotler Ch.5 消費者行為&#10;Ajzen 1991 TPB"></textarea>
+
+      <label class="f">教學大主題 <small>留空由 AI 依文獻自行歸納命名</small></label>
+      <input type="text" id="m0_topic" placeholder="例如：消費者決策歷程">
+
+      <div class="row">
+        <div>
+          <label class="f">子主題數量上限 <small>留空不限</small></label>
+          <input type="number" id="m0_max" min="1" max="20" placeholder="例如 5">
+        </div>
+        <div>
+          <label class="f">每份講義字數 <small>NotebookLM 約 6000 上限</small></label>
+          <input type="number" id="m0_words" min="1000" step="500" placeholder="6000">
+        </div>
+      </div>
+      <div class="note" id="m0_note"></div>
+    </div>
+
+    <!-- [1] 講義生成 -->
+    <div class="pane" data-m="1">
+      <h2>[1] 講義生成</h2>
+      <p class="hint">接在 [0] 同一個對話。貼上 [0] 最後的「講義邊界速查」，就能直接點選子主題、勾選這次要寫的概念。</p>
+
+      <label class="f">講義邊界速查 <small>貼上 [0] 輸出最後的程式碼區塊（可不貼，改用下方手填）</small></label>
+      <textarea id="m1_menu" class="mono" placeholder="子主題 1｜…｜專屬：…｜先備：無&#10;子主題 2｜…｜專屬：…｜先備：子主題 1&#10;共用｜…｜歸屬：子主題 1｜引用：子主題 2"></textarea>
+
+      <div id="m1_pick" hidden>
+        <label class="f">選一個子主題</label>
+        <div class="list" id="m1_topics"></div>
+        <div id="m1_conceptsWrap" hidden>
+          <label class="f">這份講義要寫的概念 <small>取消勾選 = 這次不寫入正文，列到「延伸閱讀與資料界限」</small></label>
+          <div class="chips" id="m1_concepts"></div>
+        </div>
+      </div>
+
+      <div id="m1_manualWrap">
+        <label class="f">或手填子主題 <small>可填菜單編號，例如 1</small></label>
+        <input type="text" id="m1_manual" placeholder="例如：1 或 計畫行為理論">
+      </div>
+
+      <label class="f">講義總字數上限 <small>留空 = 約 6000 字</small></label>
+      <input type="number" id="m1_words" min="1000" step="500" placeholder="6000">
+
+      <fieldset class="struct">
+        <legend>講義結構</legend>
+
+        <div class="grp">
+          <div class="t">開頭</div>
+          <label class="check"><input type="checkbox" id="s_intro" checked>
+            <span>「為什麼要理解這個主題？」引言節 <small style="color:var(--muted)">（以情境、管理決策或研究問題引入）</small></span></label>
+        </div>
+
+        <div class="grp">
+          <div class="t">核心概念與理論架構（必備）</div>
+          <label class="check"><input type="checkbox" id="s_overview" checked>
+            <span>先寫一段「架構總覽」 <small style="color:var(--muted)">（只交代概念之間的順序與關係，不定義）</small></span></label>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="s_format" value="bullets" checked>標題 → 條列 → 段落</label>
+            <label class="chip"><input type="radio" name="s_format" value="prose">標題 → 純段落</label>
+          </div>
+        </div>
+
+        <div class="grp">
+          <div class="t">說明性例子</div>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="s_examples" value="inline" checked>散在各概念中</label>
+            <label class="chip"><input type="radio" name="s_examples" value="section">獨立一節「管理與行銷應用」</label>
+            <label class="chip"><input type="radio" name="s_examples" value="none">不放例子</label>
+          </div>
+        </div>
+
+        <div class="grp">
+          <div class="t">結尾（必備）</div>
+          <label class="check lock"><input type="checkbox" checked disabled>
+            <span>「延伸閱讀與資料界限」 <small style="color:var(--muted)">（範圍邊界與資料不足的提醒都寫在這裡，不可關閉）</small></span></label>
+        </div>
+
+        <ol class="outline" id="m1_outline"></ol>
+      </fieldset>
+
+      <label class="check" style="margin-top:14px"><input type="checkbox" id="m1_attach">
+        <span>把講義邊界速查一起附進 Prompt <small style="color:var(--muted)">（在「新對話」撰寫時才需要；同一對話接續不用）</small></span></label>
+
+      <label class="f">補充要求 <small>選填，會加在 Prompt 最後</small></label>
+      <textarea id="m1_extra" placeholder="例如：例子請以台灣零售業為主"></textarea>
+      <div class="note" id="m1_note"></div>
+    </div>
+
+    <!-- [2] 小組討論問題 -->
+    <div class="pane" data-m="2">
+      <h2>[2] 小組討論問題</h2>
+      <p class="hint">接在 [1] 同一個對話，不需要重貼講義。</p>
+      <label class="f">題數 <small>留空 = 3–5 題</small></label>
+      <input type="number" id="m2_n" min="1">
+      <label class="f">小組人數與討論時間 <small>留空由 AI 建議</small></label>
+      <input type="text" id="m2_group" placeholder="例如：4 人一組，討論 15 分鐘">
+    </div>
+
+    <!-- [3] 個人測驗題 -->
+    <div class="pane" data-m="3">
+      <h2>[3] 個人測驗題</h2>
+      <p class="hint">接在 [1] 同一個對話。三種題型一次出齊；不要的題型填 0。</p>
+      <div class="row">
+        <div><label class="f">選擇題 <small>預設 8–10</small></label><input type="number" id="m3_mc" min="0"></div>
+        <div><label class="f">簡答／申論 <small>預設 3–5</small></label><input type="number" id="m3_sa" min="0"></div>
+        <div><label class="f">情境應用 <small>預設 1–2</small></label><input type="number" id="m3_case" min="0"></div>
+      </div>
+      <div class="note" id="m3_note"></div>
+    </div>
+
+    <!-- [4] 白話解釋句子 -->
+    <div class="pane" data-m="4">
+      <h2>[4] 白話解釋句子</h2>
+      <p class="hint">接在同一個對話（AI 需要對話記憶才知道上下文）。可連同前後一兩句一起貼。</p>
+      <label class="f">看不懂的句子</label>
+      <textarea id="m4_s" style="min-height:120px"></textarea>
+    </div>
+  </section>
+
+  <section class="card out">
+    <div class="out-head">
+      <span id="count"></span>
+      <button class="copy" id="copy">複製 Prompt</button>
+    </div>
+    <pre id="out"></pre>
+    <div class="next" id="next"></div>
+  </section>
+</main>
+
+<!-- 一般 script（非 ES module），雙擊本機檔案開啟也能用 -->
+<script src="js/common.js"></script>
+<script src="js/handout.js"></script>
+<script src="js/m0-menu.js"></script>
+<script src="js/m1-handout.js"></script>
+<script src="js/m2-discussion.js"></script>
+<script src="js/m3-quiz.js"></script>
+<script src="js/m4-explain.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
