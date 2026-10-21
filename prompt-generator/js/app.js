@@ -37,10 +37,10 @@ $("copy").addEventListener("click", async () => {
 
 // 記住欄位內容（只存在這台電腦的這個瀏覽器）
 const KEY = "teaching-prompts-v2";
-const FIELDS = ["m0_docs", "m0_topic", "m0_max", "m0_words", "m1_menu", "m1_manual", "m1_words", "m1_extra", "m2_n", "m2_group", "m3_mc", "m3_sa", "m3_case"];
+const FIELDS = ["m0_docs", "m0_topic", "m0_max", "m0_words", "m1_menu", "m1_manual", "m1_words", "m1_extra", "dp_text", "dp_words", "dp_extra", "disc_n", "disc_group", "m4_s"];
 function save() {
   try {
-    const d = { mode, pickedNo, attach: $("m1_attach").checked, struct: structOpts() };
+    const d = { mode, pickedNo, attach: $("m1_attach").checked, struct: structOpts(), dirs: deepenDirs() };
     FIELDS.forEach(id => (d[id] = $(id).value));
     localStorage.setItem(KEY, JSON.stringify(d));
   } catch {}
@@ -51,6 +51,7 @@ function load() {
     FIELDS.forEach(id => { if (d[id] != null) $(id).value = d[id]; });
     $("m1_attach").checked = !!d.attach;
     if (d.struct) setStructOpts(d.struct);
+    if (Array.isArray(d.dirs)) document.querySelectorAll('input[name="dp_dir"]').forEach(el => (el.checked = d.dirs.includes(el.value)));
     pickedNo = d.pickedNo || null;
     if (d.mode && MODULES[d.mode]) mode = d.mode;
   } catch {}

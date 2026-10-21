@@ -17,8 +17,8 @@
 <nav id="tabs">
   <button data-m="0" class="on"><b>0</b>教學主題菜單</button>
   <button data-m="1"><b>1</b>講義生成</button>
-  <button data-m="2"><b>2</b>小組討論題</button>
-  <button data-m="3"><b>3</b>個人測驗題</button>
+  <button data-m="2"><b>2</b>深化既有段落</button>
+  <button data-m="3"><b>3</b>小組討論題</button>
   <button data-m="4"><b>4</b>白話解釋句子</button>
 </nav>
 
@@ -118,26 +118,38 @@
       <div class="note" id="m1_note"></div>
     </div>
 
-    <!-- [2] 小組討論問題 -->
+    <!-- [2] 深化既有段落 -->
     <div class="pane" data-m="2">
-      <h2>[2] 小組討論問題</h2>
-      <p class="hint">接在 [1] 同一個對話，不需要重貼講義。</p>
-      <label class="f">題數 <small>留空 = 3–5 題</small></label>
-      <input type="number" id="m2_n" min="1">
-      <label class="f">小組人數與討論時間 <small>留空由 AI 建議</small></label>
-      <input type="text" id="m2_group" placeholder="例如：4 人一組，討論 15 分鐘">
+      <h2>[2] 深化既有段落</h2>
+      <p class="hint">講義寫好後，想把其中某一段寫得更深入時使用。接在寫出這份講義的同一個對話；輸出是一段可以直接替換原段落的新版本。</p>
+      <label class="f">要深化的段落 <small>從講義複製一個 ### 區塊，連同標題一起貼</small></label>
+      <textarea id="dp_text" style="min-height:160px" placeholder="### 4U 痛點架構&#10;- …&#10;（段落文字）"></textarea>
+
+      <label class="f">深化方向 <small>可複選；都不勾 = 由 AI 判斷原段落最薄弱之處</small></label>
+      <div class="chips">
+        <label class="chip"><input type="checkbox" name="dp_dir" value="mech">機制與理論依據</label>
+        <label class="chip"><input type="checkbox" name="dp_dir" value="evid">實證研究</label>
+        <label class="chip"><input type="checkbox" name="dp_dir" value="comp">與相近概念比較</label>
+        <label class="chip"><input type="checkbox" name="dp_dir" value="exam">說明性例子</label>
+        <label class="chip"><input type="checkbox" name="dp_dir" value="limi">限制與學術爭議</label>
+      </div>
+
+      <label class="f">改寫後字數 <small>留空 = 約為原段落的兩倍</small></label>
+      <input type="number" id="dp_words" min="200" step="100" placeholder="例如 1200">
+
+      <label class="f">補充要求 <small>選填，會加在 Prompt 最後</small></label>
+      <textarea id="dp_extra" placeholder="例如：實證研究請優先使用 Keller 的研究"></textarea>
+      <div class="note" id="dp_note"></div>
     </div>
 
-    <!-- [3] 個人測驗題 -->
+    <!-- [3] 小組討論問題 -->
     <div class="pane" data-m="3">
-      <h2>[3] 個人測驗題</h2>
-      <p class="hint">接在 [1] 同一個對話。三種題型一次出齊；不要的題型填 0。</p>
-      <div class="row">
-        <div><label class="f">選擇題 <small>預設 8–10</small></label><input type="number" id="m3_mc" min="0"></div>
-        <div><label class="f">簡答／申論 <small>預設 3–5</small></label><input type="number" id="m3_sa" min="0"></div>
-        <div><label class="f">情境應用 <small>預設 1–2</small></label><input type="number" id="m3_case" min="0"></div>
-      </div>
-      <div class="note" id="m3_note"></div>
+      <h2>[3] 小組討論問題</h2>
+      <p class="hint">接在 [1] 同一個對話，不需要重貼講義。</p>
+      <label class="f">題數 <small>留空 = 3–5 題</small></label>
+      <input type="number" id="disc_n" min="1">
+      <label class="f">小組人數與討論時間 <small>留空由 AI 建議</small></label>
+      <input type="text" id="disc_group" placeholder="例如：4 人一組，討論 15 分鐘">
     </div>
 
     <!-- [4] 白話解釋句子 -->
@@ -164,8 +176,8 @@
 <script src="js/handout.js"></script>
 <script src="js/m0-menu.js"></script>
 <script src="js/m1-handout.js"></script>
-<script src="js/m2-discussion.js"></script>
-<script src="js/m3-quiz.js"></script>
+<script src="js/m2-deepen.js"></script>
+<script src="js/m3-discussion.js"></script>
 <script src="js/m4-explain.js"></script>
 <script src="js/app.js"></script>
 </body>

@@ -1,6 +1,6 @@
-// ── [2] 小組討論問題 ──
-function build2() {
-  const n = v("m2_n"), g = v("m2_group");
+// ── [3] 小組討論問題 ──
+function buildDiscussion() {
+  const n = v("disc_n"), g = v("disc_group");
   const numLine = blank(n) ? "3 到 5 題" : `${n} 題`;
   const groupLine = blank(g) ? "[未提供，依題目性質自行建議]" : g;
   return [
@@ -32,4 +32,4 @@ function build2() {
   ].join("\n");
 }
 
-MODULES["2"] = { build: build2, next: "下一步：回到同一個 NotebookLM 對話貼上（不要開新對話）。" };
+MODULES["3"] = { build: buildDiscussion, next: "下一步：回到同一個 NotebookLM 對話貼上（不要開新對話）。" };
