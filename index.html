@@ -40,6 +40,12 @@
   a.tool strong{display:block;font-size:16.5px;color:var(--accent-strong);margin-bottom:2px}
   a.tool span{display:block;font-size:13.5px;color:var(--ink-soft)}
   a.tool em{display:inline-block;margin-top:8px;font-style:normal;font-size:12px;color:var(--ink-faint);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:0 9px}
+  .tabs{display:flex;gap:6px;margin:8px 0 12px 42px;border-bottom:1px solid var(--border)}
+  .tab{border:0;background:none;font:inherit;font-size:15px;font-weight:500;color:var(--ink-soft);padding:6px 12px;margin-bottom:-1px;border-bottom:2px solid transparent;cursor:pointer}
+  .tab.on{color:var(--accent-strong);border-bottom-color:var(--accent);font-weight:700}
+  .tabpane{display:none}
+  .tabpane.on{display:block}
+  @media (max-width:560px){.tabs{margin-left:0}}
   footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--ink-faint);font-size:13px}
 </style>
 </head>
@@ -50,23 +56,27 @@
   <p class="lede">課堂管理與測驗準備的小工具。所有計算都在您的瀏覽器中完成，名冊與成績只存在您使用的這台電腦的瀏覽器裡，不會上傳。</p>
 
   <section>
-    <div class="sec-head"><span class="no">1</span><h2>成績管理</h2></div>
-    <p class="sec-desc">把課堂作答紀錄依姓名合併進學生名冊。</p>
-    <div class="cards">
-      <a class="tool" href="./grades/"><strong>成績登錄器</strong><span>貼上名冊與作答紀錄，依選項給分並合併成一個分數欄，可複製或匯出 CSV。</span><em>本機儲存</em></a>
+    <div class="sec-head"><span class="no">1</span><h2>課堂管理</h2></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" class="tab on" data-t="grades" aria-selected="true">成績管理</button>
+      <button role="tab" class="tab" data-t="quiz" aria-selected="false">測驗準備</button>
+    </div>
+    <div class="tabpane on" data-t="grades">
+      <p class="sec-desc">把課堂作答紀錄依姓名合併進學生名冊。</p>
+      <div class="cards">
+        <a class="tool" href="./grades/"><strong>成績登錄器</strong><span>貼上名冊與作答紀錄，依選項給分並合併成一個分數欄，可複製或匯出 CSV。</span><em>本機儲存</em></a>
+      </div>
+    </div>
+    <div class="tabpane" data-t="quiz">
+      <p class="sec-desc">把選擇題整理成 Moodle 可以匯入的格式。</p>
+      <div class="cards">
+        <a class="tool" href="./aiken/"><strong>Aiken 轉換器</strong><span>Word、txt 或貼上的選擇題，轉成 Moodle 匯入用的 Aiken 格式。</span><em>Moodle</em></a>
+      </div>
     </div>
   </section>
 
   <section>
-    <div class="sec-head"><span class="no">2</span><h2>測驗準備</h2></div>
-    <p class="sec-desc">把選擇題整理成 Moodle 可以匯入的格式。</p>
-    <div class="cards">
-      <a class="tool" href="./aiken/"><strong>Aiken 轉換器</strong><span>Word、txt 或貼上的選擇題，轉成 Moodle 匯入用的 Aiken 格式。</span><em>Moodle</em></a>
-    </div>
-  </section>
-
-  <section>
-    <div class="sec-head"><span class="no">3</span><h2>教材準備</h2></div>
+    <div class="sec-head"><span class="no">2</span><h2>教材準備</h2></div>
     <p class="sec-desc">產生貼到 NotebookLM 的 Prompt：子主題菜單、講義、討論題、測驗題。</p>
     <div class="cards">
       <a class="tool" href="./prompt-generator/"><strong>教材 Prompt 產生器</strong><span>依教材切出互斥的子主題，再自選講義結構產生講義、小組討論題與個人測驗題的 Prompt。</span><em>NotebookLM</em></a>
@@ -75,5 +85,15 @@
 
   <footer>成績登錄器的資料只存在這台電腦、這個瀏覽器中；換電腦或換瀏覽器不會同步，請以「匯出 CSV」備份。</footer>
 </main>
+<script>
+  const tabs=document.querySelectorAll('.tab'), panes=document.querySelectorAll('.tabpane');
+  function show(t){
+    tabs.forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+    panes.forEach(p=>p.classList.toggle('on',p.dataset.t===t));
+    try{localStorage.setItem('toolbox-tab',t)}catch{}
+  }
+  tabs.forEach(b=>b.addEventListener('click',()=>show(b.dataset.t)));
+  try{const t=localStorage.getItem('toolbox-tab');if(t&&document.querySelector('.tab[data-t="'+t+'"]'))show(t)}catch{}
+</script>
 </body>
 </html>
