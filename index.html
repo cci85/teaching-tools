@@ -4,96 +4,133 @@
 <meta charset="utf-8"><meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>教學工具箱</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <style>
   :root{
-    --bg:#f5f3ee; --surface:#ffffff; --surface-2:#faf8f3; --border:#ddd7c9;
+    --bg:#f5f3ee; --surface:#ffffff; --border:#ddd7c9;
     --ink:#232019; --ink-soft:#655e4d; --ink-faint:#8f886f;
     --accent:#28594f; --accent-strong:#1b4139; --accent-soft:#e1ece7;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#141612; --surface:#1c1f1a; --surface-2:#20241e; --border:#373d33;
+      --bg:#141612; --surface:#1c1f1a; --border:#373d33;
       --ink:#eae7dc; --ink-soft:#b7b3a1; --ink-faint:#847e69;
       --accent:#79bda7; --accent-strong:#9bd2bf; --accent-soft:#213b34;
     }
   }
+  :root[data-theme="dark"]{
+    --bg:#141612; --surface:#1c1f1a; --border:#373d33;
+    --ink:#eae7dc; --ink-soft:#b7b3a1; --ink-faint:#847e69;
+    --accent:#79bda7; --accent-strong:#9bd2bf; --accent-soft:#213b34;
+  }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;line-height:1.7}
-  main{max-width:880px;margin:0 auto;padding:48px 16px 64px}
-  .eyebrow{margin:0 0 8px;font-size:12.5px;letter-spacing:.12em;color:var(--accent);font-weight:700}
-  h1{font-family:"Noto Serif TC",serif;font-size:clamp(26px,4vw,34px);margin:0 0 10px}
-  .lede{margin:0 0 28px;color:var(--ink-soft);max-width:62ch}
-  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0 0 32px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:14px}
-  .flow span.s{font-weight:700;color:var(--accent-strong)}
-  .flow span.a{color:var(--ink-faint)}
-  section{margin-bottom:30px}
-  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
-  .no{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:15px;transform:translateY(4px)}
-  h2{font-family:"Noto Serif TC",serif;font-size:21px;margin:0}
-  .sec-desc{margin:0 0 12px 42px;color:var(--ink-soft);font-size:14px}
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px;margin-left:42px}
-  @media (max-width:560px){.sec-desc,.cards{margin-left:0}}
-  a.tool{display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
-  a.tool:hover{border-color:var(--accent);transform:translateY(-1px)}
-  a.tool strong{display:block;font-size:16.5px;color:var(--accent-strong);margin-bottom:2px}
-  a.tool span{display:block;font-size:13.5px;color:var(--ink-soft)}
-  a.tool em{display:inline-block;margin-top:8px;font-style:normal;font-size:12px;color:var(--ink-faint);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:0 9px}
-  .tabs{display:flex;gap:6px;margin:8px 0 12px 42px;border-bottom:1px solid var(--border)}
-  .tab{border:0;background:none;font:inherit;font-size:15px;font-weight:500;color:var(--ink-soft);padding:6px 12px;margin-bottom:-1px;border-bottom:2px solid transparent;cursor:pointer}
-  .tab.on{color:var(--accent-strong);border-bottom-color:var(--accent);font-weight:700}
-  .tabpane{display:none}
-  .tabpane.on{display:block}
-  @media (max-width:560px){.tabs{margin-left:0}}
-  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--ink-faint);font-size:13px}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+  header.top{max-width:1600px;margin:0 auto;padding:16px 16px 8px}
+  header.top h1{margin:0;font-size:20px}
+  header.top p{margin:2px 0 0;color:var(--ink-soft);font-size:13px}
+  .layout{max-width:1600px;margin:0 auto;padding:4px 16px 16px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:14px;align-items:start}
+  #toc{position:sticky;top:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px}
+  #toc details{margin:2px 0}
+  #toc summary{cursor:pointer;font-weight:700;font-size:14.5px;padding:6px 8px;border-radius:8px}
+  #toc summary:hover{background:var(--bg)}
+  #toc button{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;font-size:14px;padding:6px 8px 6px 22px;border-radius:8px;cursor:pointer}
+  #toc button:hover{background:var(--bg)}
+  #toc button.on{background:var(--accent-soft);color:var(--accent-strong);font-weight:600}
+  .work{display:flex;flex-direction:column;gap:10px;min-width:0}
+  #sechead{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px}
+  #sechead h2{margin:0;font-size:18px}
+  #sechead p{margin:2px 0 0;color:var(--ink-soft);font-size:13.5px}
+  ol.steps{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  ol.steps li{display:flex;align-items:center;gap:6px}
+  ol.steps li+li::before{content:"→";color:var(--ink-faint)}
+  ol.steps button{border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:8px;cursor:pointer;font:inherit;font-size:14px}
+  ol.steps button b{font-family:var(--mono);margin-right:6px}
+  ol.steps button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  p.stepnote{margin:10px 0 0;padding:8px 12px;border-left:3px solid var(--accent);background:var(--bg);border-radius:0 8px 8px 0;font-size:14px;color:var(--ink)}
+  iframe#view{width:100%;height:calc(100vh - 120px);min-height:520px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+  footer{max-width:1600px;margin:0 auto;padding:0 16px 20px;color:var(--ink-faint);font-size:12.5px}
+  @media (max-width:860px){
+    .layout{grid-template-columns:minmax(0,1fr)}
+    #toc{position:static}
+    iframe#view{height:80vh}
+  }
 </style>
 </head>
 <body>
-<main>
-  <p class="eyebrow">教師使用</p>
+<header class="top">
   <h1>教學工具箱</h1>
-  <p class="lede">課堂管理與測驗準備的小工具。所有計算都在您的瀏覽器中完成，名冊與成績只存在您使用的這台電腦的瀏覽器裡，不會上傳。</p>
+  <p>課堂管理與備課的小工具。所有計算都在您的瀏覽器中完成，名冊、成績與填寫的內容只存在這台電腦的瀏覽器裡，不會上傳。</p>
+</header>
 
-  <section>
-    <div class="sec-head"><span class="no">1</span><h2>課堂管理</h2></div>
-    <div class="tabs" role="tablist">
-      <button role="tab" class="tab on" data-t="grades" aria-selected="true">成績管理</button>
-      <button role="tab" class="tab" data-t="quiz" aria-selected="false">測驗準備</button>
-    </div>
-    <div class="tabpane on" data-t="grades">
-      <p class="sec-desc">把課堂作答紀錄依姓名合併進學生名冊。</p>
-      <div class="cards">
-        <a class="tool" href="./grades/"><strong>成績登錄器</strong><span>貼上名冊與作答紀錄，依選項給分並合併成一個分數欄，可複製或匯出 CSV。</span><em>本機儲存</em></a>
-      </div>
-    </div>
-    <div class="tabpane" data-t="quiz">
-      <p class="sec-desc">把選擇題整理成 Moodle 可以匯入的格式。</p>
-      <div class="cards">
-        <a class="tool" href="./aiken/"><strong>Aiken 轉換器</strong><span>Word、txt 或貼上的選擇題，轉成 Moodle 匯入用的 Aiken 格式。</span><em>Moodle</em></a>
-      </div>
-    </div>
-  </section>
+<div class="layout">
+  <aside id="toc" aria-label="工具目錄"></aside>
+  <div class="work">
+    <section id="sechead"></section>
+    <iframe id="view" title="工具"></iframe>
+  </div>
+</div>
+<footer>成績登錄器的資料只存在這台電腦、這個瀏覽器中；換電腦或換瀏覽器不會同步，請以「匯出 CSV」備份。</footer>
 
-  <section>
-    <div class="sec-head"><span class="no">2</span><h2>教材準備</h2></div>
-    <p class="sec-desc">產生貼到 NotebookLM 的 Prompt：子主題菜單、講義、深化段落、討論題。</p>
-    <div class="cards">
-      <a class="tool" href="./prompt-generator/"><strong>教材 Prompt 產生器</strong><span>依教材切出互斥的子主題，再自選講義結構產生講義、深化既有段落與小組討論題的 Prompt。</span><em>NotebookLM</em></a>
-    </div>
-  </section>
-
-  <footer>成績登錄器的資料只存在這台電腦、這個瀏覽器中；換電腦或換瀏覽器不會同步，請以「匯出 CSV」備份。</footer>
-</main>
 <script>
-  const tabs=document.querySelectorAll('.tab'), panes=document.querySelectorAll('.tabpane');
-  function show(t){
-    tabs.forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
-    panes.forEach(p=>p.classList.toggle('on',p.dataset.t===t));
-    try{localStorage.setItem('toolbox-tab',t)}catch{}
-  }
-  tabs.forEach(b=>b.addEventListener('click',()=>show(b.dataset.t)));
-  try{const t=localStorage.getItem('toolbox-tab');if(t&&document.querySelector('.tab[data-t="'+t+'"]'))show(t)}catch{}
+// 側邊目錄：分組 → 項目 → 步驟；每個步驟在右側開啟一個工具頁面
+const NAV = [
+  { ch: "課堂管理", items: [
+    { id: "grades", title: "成績登錄器", desc: "貼上名冊與作答紀錄，依選項給分並合併成一個分數欄，可複製或匯出 CSV。",
+      steps: [{ label: "成績登錄器", src: "grades/" }] },
+    { id: "aiken", title: "Aiken 轉換器", desc: "把 Word、txt 或貼上的選擇題，轉成 Moodle 匯入用的 Aiken 格式。",
+      steps: [{ label: "Aiken 轉換器", src: "aiken/" }] }
+  ] },
+  { ch: "備課", items: [
+    { id: "plan", title: "規劃單元", desc: "把教材切成彼此不重疊的子主題，決定這個單元要寫幾份講義。",
+      steps: [{ label: "教學主題菜單", src: "prompt-generator/?embed=1&m=0",
+        note: "先把教材上傳到同一個 NotebookLM 筆記本並開新對話；AI 會列出可教的子主題與「講義邊界速查」。" }] },
+    { id: "handout", title: "撰寫講義", desc: "依子主題逐份撰寫講義；寫好後若某一段想更深入，再加以深化。",
+      steps: [
+        { label: "講義生成", src: "prompt-generator/?embed=1&m=1",
+          note: "接在「規劃單元」同一個 NotebookLM 對話；貼上講義邊界速查，選一個子主題並調整講義結構。" },
+        { label: "深化既有段落", src: "prompt-generator/?embed=1&m=2",
+          note: "講義寫好後使用：從講義複製想展開的 ### 區塊，選擇深化方向，產出可直接替換的段落。" }] },
+    { id: "activity", title: "課堂活動", desc: "依講義內容設計課堂上的小組討論。",
+      steps: [{ label: "小組討論題", src: "prompt-generator/?embed=1&m=3",
+        note: "接在寫出講義的同一個 NotebookLM 對話，不需要重貼講義。" }] }
+  ] }
+];
+const ITEMS = NAV.flatMap(g => g.items);
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let state = { item: "grades", step: {} };
+try { Object.assign(state, JSON.parse(localStorage.getItem("toolbox-nav") || "{}")); } catch {}
+if (!ITEMS.some(i => i.id === state.item)) state.item = "grades";
+const save = () => { try { localStorage.setItem("toolbox-nav", JSON.stringify(state)); } catch {} };
+
+const item = () => ITEMS.find(i => i.id === state.item);
+const stepIdx = () => Math.min(state.step[state.item] || 0, item().steps.length - 1);
+
+function render() {
+  $("toc").innerHTML = NAV.map(g => `<details open><summary>${esc(g.ch)}</summary>` +
+    g.items.map(i => `<button data-item="${i.id}" class="${i.id === state.item ? "on" : ""}">${esc(i.title)}</button>`).join("") +
+    `</details>`).join("");
+  const it = item(), k = stepIdx(), st = it.steps[k];
+  $("sechead").innerHTML = `<h2>${esc(it.title)}</h2><p>${esc(it.desc)}</p>` +
+    (it.steps.length > 1 ? `<ol class="steps">${it.steps.map((s, j) =>
+      `<li><button data-step="${j}" class="${j === k ? "on" : ""}"><b>${j + 1}</b>${esc(s.label)}</button></li>`).join("")}</ol>` : "") +
+    (st.note ? `<p class="stepnote">${esc(st.note)}</p>` : "");
+  if ($("view").getAttribute("src") !== st.src) $("view").setAttribute("src", st.src);
+  $("view").title = st.label;
+  save();
+}
+
+$("toc").addEventListener("click", e => {
+  const b = e.target.closest("button[data-item]"); if (!b) return;
+  state.item = b.dataset.item; render();
+  if (window.innerWidth < 860) $("sechead").scrollIntoView({ behavior: "smooth" });
+});
+$("sechead").addEventListener("click", e => {
+  const b = e.target.closest("button[data-step]"); if (!b) return;
+  state.step[state.item] = +b.dataset.step; render();
+});
+render();
 </script>
 </body>
 </html>

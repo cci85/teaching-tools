@@ -91,5 +91,5 @@ function note0() {
 
 MODULES["0"] = {
   build: build0, note: note0,
-  next: "下一步：貼到已上傳教材的 NotebookLM 新對話 → 從回覆選定『一個』子主題 → 切到 [1]，在同一個對話接續貼上。"
+  next: "下一步：貼到已上傳教材的 NotebookLM 新對話 → 從回覆選定『一個』子主題 → 切到「講義生成」，在同一個對話接續貼上。"
 };

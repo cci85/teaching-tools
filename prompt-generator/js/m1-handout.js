@@ -125,7 +125,7 @@ function note1() {
 MODULES["1"] = {
   build: build1, note: note1,
   empty: "（請選一個子主題，或在「手填子主題」輸入）",
-  next: "下一步：回到 [0] 那個 NotebookLM 對話貼上（不要開新對話）。",
+  next: "下一步：回到「教學主題菜單」那個 NotebookLM 對話貼上（不要開新對話）。",
   init() {
     $("m1_menu").addEventListener("input", () => { renderMenu(); update(); });
     renderMenu();

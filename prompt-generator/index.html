@@ -19,14 +19,13 @@
   <button data-m="1"><b>1</b>講義生成</button>
   <button data-m="2"><b>2</b>深化既有段落</button>
   <button data-m="3"><b>3</b>小組討論題</button>
-  <button data-m="4"><b>4</b>白話解釋句子</button>
 </nav>
 
 <main>
   <section class="card">
     <!-- [0] 教學主題菜單 -->
     <div class="pane on" data-m="0">
-      <h2>[0] 教學主題菜單</h2>
+      <h2>教學主題菜單</h2>
       <p class="hint">獨立使用。先把教材上傳到同一個 Notebook 並開新對話，AI 會列出可教子主題給你勾選。</p>
 
       <label class="f">文獻範圍 <small>一行一份 NotebookLM 文件標題；留空 = 全部上傳來源</small></label>
@@ -50,10 +49,10 @@
 
     <!-- [1] 講義生成 -->
     <div class="pane" data-m="1">
-      <h2>[1] 講義生成</h2>
-      <p class="hint">接在 [0] 同一個對話。貼上 [0] 最後的「講義邊界速查」，就能直接點選子主題、勾選這次要寫的概念。</p>
+      <h2>講義生成</h2>
+      <p class="hint">接在「教學主題菜單」同一個對話。貼上它輸出最後的「講義邊界速查」，就能直接點選子主題、勾選這次要寫的概念。</p>
 
-      <label class="f">講義邊界速查 <small>貼上 [0] 輸出最後的程式碼區塊（可不貼，改用下方手填）</small></label>
+      <label class="f">講義邊界速查 <small>貼上「教學主題菜單」輸出最後的程式碼區塊（可不貼，改用下方手填）</small></label>
       <textarea id="m1_menu" class="mono" placeholder="子主題 1｜…｜專屬：…｜先備：無&#10;子主題 2｜…｜專屬：…｜先備：子主題 1&#10;共用｜…｜歸屬：子主題 1｜引用：子主題 2"></textarea>
 
       <div id="m1_pick" hidden>
@@ -120,7 +119,7 @@
 
     <!-- [2] 深化既有段落 -->
     <div class="pane" data-m="2">
-      <h2>[2] 深化既有段落</h2>
+      <h2>深化既有段落</h2>
       <p class="hint">講義寫好後，想把其中某一段寫得更深入時使用。接在寫出這份講義的同一個對話；輸出是一段可以直接替換原段落的新版本。</p>
       <label class="f">要深化的段落 <small>從講義複製一個 ### 區塊，連同標題一起貼</small></label>
       <textarea id="dp_text" style="min-height:160px" placeholder="### 4U 痛點架構&#10;- …&#10;（段落文字）"></textarea>
@@ -144,21 +143,14 @@
 
     <!-- [3] 小組討論問題 -->
     <div class="pane" data-m="3">
-      <h2>[3] 小組討論問題</h2>
-      <p class="hint">接在 [1] 同一個對話，不需要重貼講義。</p>
+      <h2>小組討論問題</h2>
+      <p class="hint">接在「講義生成」同一個對話，不需要重貼講義。</p>
       <label class="f">題數 <small>留空 = 3–5 題</small></label>
       <input type="number" id="disc_n" min="1">
       <label class="f">小組人數與討論時間 <small>留空由 AI 建議</small></label>
       <input type="text" id="disc_group" placeholder="例如：4 人一組，討論 15 分鐘">
     </div>
 
-    <!-- [4] 白話解釋句子 -->
-    <div class="pane" data-m="4">
-      <h2>[4] 白話解釋句子</h2>
-      <p class="hint">接在同一個對話（AI 需要對話記憶才知道上下文）。可連同前後一兩句一起貼。</p>
-      <label class="f">看不懂的句子</label>
-      <textarea id="m4_s" style="min-height:120px"></textarea>
-    </div>
   </section>
 
   <section class="card out">
@@ -178,7 +170,6 @@
 <script src="js/m1-handout.js"></script>
 <script src="js/m2-deepen.js"></script>
 <script src="js/m3-discussion.js"></script>
-<script src="js/m4-explain.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

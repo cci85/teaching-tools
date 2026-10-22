@@ -37,7 +37,7 @@ $("copy").addEventListener("click", async () => {
 
 // 記住欄位內容（只存在這台電腦的這個瀏覽器）
 const KEY = "teaching-prompts-v2";
-const FIELDS = ["m0_docs", "m0_topic", "m0_max", "m0_words", "m1_menu", "m1_manual", "m1_words", "m1_extra", "dp_text", "dp_words", "dp_extra", "disc_n", "disc_group", "m4_s"];
+const FIELDS = ["m0_docs", "m0_topic", "m0_max", "m0_words", "m1_menu", "m1_manual", "m1_words", "m1_extra", "dp_text", "dp_words", "dp_extra", "disc_n", "disc_group"];
 function save() {
   try {
     const d = { mode, pickedNo, attach: $("m1_attach").checked, struct: structOpts(), dirs: deepenDirs() };
@@ -58,5 +58,9 @@ function load() {
 }
 
 load();
+// 嵌入教學工具箱時：隱藏標題與分頁，直接開啟指定模組（?embed=1&m=1）
+const qs = new URLSearchParams(location.search);
+if (qs.get("embed")) document.body.classList.add("embed");
+if (qs.get("m") && MODULES[qs.get("m")]) mode = qs.get("m");
 Object.values(MODULES).forEach(m => m.init && m.init());
 setMode(mode);

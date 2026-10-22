@@ -96,3 +96,7 @@ fieldset.struct legend { font-weight: 600; font-size: 14px; padding: 0 6px; }
 ol.outline { margin: 12px 0 0; padding: 8px 12px 8px 32px; background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; font-size: 13.5px; }
 ol.outline li { margin: 2px 0; }
 ol.outline li small { color: var(--muted); }
+
+/* 嵌入教學工具箱 */
+.embed .toolbox-back, .embed > header, .embed #tabs { display: none; }
+.embed main { padding-top: 16px; }
